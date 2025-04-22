@@ -36,5 +36,30 @@ namespace cecAPI.Controllers
             id++;
             produtos.Add(produto);
         }
+
+        [HttpPut("{id}")]
+        public void AlterarProduto(int id, [FromQuery] ProdutoInserirRequest produtoRequest)
+        {
+            for (int i = 0; i < produtos.Count; i++)
+            {
+                if (produtos[i].Id == id)
+                {
+                    produtos[i].Nome = produtoRequest.Nome;
+                    produtos[i].Preco = produtoRequest.Preco;
+                }
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public void DeletarProduto(int id)
+        {
+            for (int i = 0; i < produtos.Count; i++)
+            {
+                if (produtos[i].Id == id)
+                {
+                    produtos.Remove(produtos[i]);
+                }
+            }
+        }
     }
 }
