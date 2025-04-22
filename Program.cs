@@ -1,4 +1,9 @@
+using cecAPI.Mapeamento;
 using cecAPI.Profiles;
+using FluentNHibernate.Cfg;
+using FluentNHibernate.Cfg.Db;
+using NHibernate;
+using ISession = NHibernate.ISession;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +15,24 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAutoMapper(typeof(ProdutoProfile));
+
+builder.Services.AddScoped<ISessionFactory>(factory =>
+{
+    string connectionString = builder.Configuration.GetConnectionString("MySql");
+    return Fluently.Configure()
+    .Database(MySQLConfiguration.Standard.ConnectionString(connectionString)
+    .FormatSql()
+    .ShowSql())
+    .Mappings(x =>
+    {
+        x.FluentMappings.AddFromAssemblyOf<ProdutosMap>();
+    }).BuildSessionFactory();
+});
+
+builder.Services.AddScoped<ISession>(factory =>
+{
+    return factory.GetService<ISessionFactory>().OpenSession();
+});
 
 var app = builder.Build();
 

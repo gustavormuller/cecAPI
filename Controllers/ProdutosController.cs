@@ -6,6 +6,8 @@ using AutoMapper;
 using cecAPI.Dto;
 using cecAPI.models;
 using Microsoft.AspNetCore.Mvc;
+using NHibernate;
+using ISession = NHibernate.ISession;
 
 namespace cecAPI.Controllers
 {
@@ -14,12 +16,14 @@ namespace cecAPI.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly ISession session;
         public static IList<Produto> produtos { get; set; } = [];
         public static int id { get; set; } = 0;
 
-        public ProdutosController(IMapper mapper)
+        public ProdutosController(IMapper mapper, ISession session)
         {
             this.mapper = mapper;
+            this.session = session;
         }
 
         [HttpGet]
@@ -60,6 +64,19 @@ namespace cecAPI.Controllers
                     produtos.Remove(produtos[i]);
                 }
             }
+        }
+
+        [HttpGet("{id}")]
+        public Produto RecuperarProduto(int id)
+        {
+            for (int i = 0; i < produtos.Count; i++)
+            {
+                if (produtos[i].Id == id)
+                {
+                    return produtos[i];
+                }
+            }
+            return null;
         }
     }
 }
