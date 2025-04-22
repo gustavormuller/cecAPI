@@ -1,0 +1,6 @@
+@cecAPI_HostAddress = http://localhost:5234
+
+GET {{cecAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
