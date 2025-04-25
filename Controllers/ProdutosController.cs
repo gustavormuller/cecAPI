@@ -17,8 +17,6 @@ namespace cecAPI.Controllers
     {
         private readonly IMapper mapper;
         private readonly ISession session;
-        public static IList<Produto> produtos { get; set; } = [];
-        public static int id { get; set; } = 0;
 
         public ProdutosController(IMapper mapper, ISession session)
         {
@@ -29,6 +27,9 @@ namespace cecAPI.Controllers
         [HttpGet]
         public IList<Produto> RecuperaProdutos()
         {
+            IQueryable<Produto> query = session.Query<Produto>();
+            IList<Produto> produtos = query.ToList();
+
             return produtos;
         }
 
@@ -36,47 +37,63 @@ namespace cecAPI.Controllers
         public void InserirProdutos(ProdutoInserirRequest produtoRequest)
         {
             Produto produto = mapper.Map<Produto>(produtoRequest);
-            produto.Id = id;
-            id++;
-            produtos.Add(produto);
+
+            ITransaction transaction = session.BeginTransaction();
+            try
+            {
+                session.Save(produto);
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+            }
         }
 
         [HttpPut("{id}")]
         public void AlterarProduto(int id, [FromQuery] ProdutoInserirRequest produtoRequest)
         {
-            for (int i = 0; i < produtos.Count; i++)
+            Produto produto = session.Get<Produto>(id);
+
+            ITransaction transaction = session.BeginTransaction();
+
+            try
             {
-                if (produtos[i].Id == id)
-                {
-                    produtos[i].Nome = produtoRequest.Nome;
-                    produtos[i].Preco = produtoRequest.Preco;
-                }
+                produto.Nome = produtoRequest.Nome;
+                produto.Preco = produtoRequest.Preco;
+
+                session.Update(produto);
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
             }
         }
 
         [HttpDelete("{id}")]
         public void DeletarProduto(int id)
         {
-            for (int i = 0; i < produtos.Count; i++)
+            Produto produto = session.Get<Produto>(id);
+
+            ITransaction transaction = session.BeginTransaction();
+
+            try
             {
-                if (produtos[i].Id == id)
-                {
-                    produtos.Remove(produtos[i]);
-                }
+                session.Delete(produto);
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
             }
         }
 
         [HttpGet("{id}")]
         public Produto RecuperarProduto(int id)
         {
-            for (int i = 0; i < produtos.Count; i++)
-            {
-                if (produtos[i].Id == id)
-                {
-                    return produtos[i];
-                }
-            }
-            return null;
+            Produto produto = session.Get<Produto>(id);
+            return produto;
         }
     }
 }
